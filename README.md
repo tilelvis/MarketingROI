@@ -1,6 +1,20 @@
 # Marketing Attribution & ROI Analysis Pipeline
 
-This project provides a comprehensive, end-to-end framework for analyzing marketing campaign performance. It integrates SQL-based attribution modeling with Python-driven ROI analysis and data visualization.
+[![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
+[![SQL](https://img.shields.io/badge/SQL-SQLite-orange.svg)](https://www.sqlite.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+A comprehensive, end-to-end data science pipeline for analyzing marketing campaign performance. This project integrates SQL-based attribution modeling with Python-driven ROI analysis and professional data visualization.
+
+| Tech Stack | Tools Used |
+| :--- | :--- |
+| **Language** | Python 3.x |
+| **Data Manipulation** | Pandas, NumPy |
+| **Database** | SQLite, SQL Window Functions |
+| **Visualization** | Seaborn, Matplotlib |
+| **Workflow** | Modular Python Pipeline |
+
+---
 
 ## Project Overview
 
@@ -10,55 +24,71 @@ In multi-channel marketing, understanding the true value of each touchpoint is c
 - **Last-Click Attribution**: Credits the final interaction immediately preceding the conversion.
 - **Linear Attribution**: Distributes credit equally across all touchpoints in the customer journey.
 
-The pipeline further extends these results by incorporating channel-specific cost structures to calculate Return on Investment (ROI) for each model.
+The pipeline further extends these results by incorporating channel-specific cost structures to calculate **Return on Investment (ROI)** for each model.
 
-## Key Features
+## Key Insights (Simulation Results)
 
-- **Automated Data Generation**: Simulates realistic multi-touch customer journeys across Search, Social, Email, Display, and Direct channels.
-- **SQL Analytics Engine**: Leverages SQLite and window functions to perform high-performance attribution modeling.
-- **ROI Modeling**: Dynamically calculates profitability metrics by merging attributed revenue with marketing spend.
-- **Data Visualization**: Generates clear, professional-grade insights into channel performance and revenue distribution.
+Based on the generated marketing dataset (~10,000 touchpoints):
 
-## Results & Insights
+- **High-Intent Closing**: The **Email** channel consistently shows the highest conversion volume in the **Last-Click** model, indicating its strength as a high-intent conversion closer.
+- **Upper-Funnel Efficiency**: **Display** advertising shows significantly higher ROI in the **Linear** and **First-Click** models compared to Last-Click, suggesting it plays a vital role in awareness and assisted conversions.
+- **Profitability Leaders**: **Email** and **Display** maintain the strongest ROI ratios across all models, while **Search** represents the largest total investment with steady, reliable returns.
+- **Direct Traffic Value**: **Direct** interactions remain a major contributor to revenue with zero direct acquisition cost, highlighting the importance of brand equity.
 
-### 1. Attributed Revenue
-Comparing revenue distribution across different models helps identify which channels are better at "opening" (First-Click) versus "closing" (Last-Click) conversions.
+## Dataset Simulation
 
-![Attributed Revenue](attributed_revenue.png)
+This project uses a custom-built synthetic dataset engine (`generate_data.py`) to simulate realistic multi-touch customer journeys.
+- **Scale**: 2,000 unique users and ~10,000+ total marketing touchpoints.
+- **Channels**: Search, Social, Email, Display, and Direct Traffic.
+- **Dynamics**: Incorporates varying conversion probabilities per channel and a "multi-touch boost" where subsequent interactions increase conversion likelihood.
 
-### 2. Conversion Distribution
-Analyzes the volume of conversions attributed to each channel, providing a holistic view of campaign reach.
+---
 
-![Attributed Conversions](attributed_conversions.png)
+## Visualizations
 
-### 3. Return on Investment (ROI)
-By integrating cost data, we can evaluate the actual efficiency of our marketing spend.
+### 1. Attributed Revenue by Model
+*Bar chart comparing revenue attribution across First-Click, Last-Click, and Linear models for each channel.*
 
-![Marketing ROI](marketing_roi.png)
+![Attributed Revenue by Model](attributed_revenue.png)
+
+### 2. Attributed Conversions
+*Distribution of total conversion counts (or shares) across marketing channels based on different attribution logic.*
+
+![Attributed Conversions by Model](attributed_conversions.png)
+
+### 3. Marketing ROI (Return on Investment)
+*ROI comparison per channel across models (excluding Direct traffic due to zero-cost skew).*
+
+![Marketing ROI by Channel and Model](marketing_roi.png)
+
+---
 
 ## Repository Structure
 
-- `main.py`: The central orchestration script that executes the entire pipeline.
-- `generate_data.py`: Script to generate the synthetic marketing dataset.
-- `setup_db.py`: Automates database creation and data ingestion into SQLite.
-- `attribution_queries.py`: Contains the SQL logic for attribution modeling.
-- `calculate_roi.py`: Handles cost-integration and ROI calculations.
-- `visualize_results.py`: Produces professional charts and graphs using Seaborn.
+- `main.py`: Master orchestration script to run the full pipeline.
+- `generate_data.py`: Synthetic marketing data generator (~10k rows).
+- `setup_db.py`: Database creation and data ingestion using SQLite.
+- `attribution_queries.py`: SQL-based attribution modeling logic.
+- `calculate_roi.py`: Cost-integration and ROI calculation engine.
+- `visualize_results.py`: Professional chart generation.
 
 ## How to Run
 
-1. **Install Dependencies**:
+1. **Clone the repository**.
+2. **Install dependencies**:
    ```bash
-   pip install pandas matplotlib seaborn
+   pip install -r requirements.txt
    ```
-2. **Execute Pipeline**:
+3. **Run the full analysis**:
    ```bash
    python main.py
    ```
 
-## Requirements
-- Python 3.x
-- Pandas
-- Matplotlib
-- Seaborn
-- SQLite3 (Included in standard library)
+## Future Improvements
+- **Time-Decay Attribution**: Implement models that give more credit to touchpoints closer in time to the conversion.
+- **Markov Chain Modeling**: Add a data-driven, probabilistic attribution model.
+- **Real-World Integration**: Connect to Google Analytics 4 (GA4) or BigQuery APIs for live data analysis.
+- **Streamlit Dashboard**: Develop an interactive web interface to explore attribution shifts in real-time.
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
