@@ -1,11 +1,26 @@
 import sqlite3
 import pandas as pd
 
+"""
+attribution_queries.py
+----------------------
+Executes SQL queries to calculate revenue attribution using three common models:
+1. First-Click: Full credit to the first touchpoint.
+2. Last-Click: Full credit to the last touchpoint before conversion.
+3. Linear: Equal credit to all touchpoints in a journey.
+"""
+
 def run_attribution_queries(db_name='marketing.db'):
+    """
+    Runs attribution SQL queries and saves the results as CSV files.
+
+    Parameters:
+    - db_name (str): Name of the SQLite database to query.
+    """
     conn = sqlite3.connect(db_name)
 
     # 1. Identify converting users and their full journeys
-    # Only touchpoints before (and including) conversion are relevant
+    # This SQL View filters for touchpoints leading up to (and including) conversion.
     conn.execute("DROP VIEW IF EXISTS converted_journeys")
     conn.execute("""
     CREATE VIEW converted_journeys AS
@@ -27,9 +42,10 @@ def run_attribution_queries(db_name='marketing.db'):
     WHERE m.timestamp <= ct.conv_time
     """)
 
-    # 2. First-Click Attribution
+    # 2. First-Click Attribution Query
+    # Uses ROW_NUMBER() to identify the first touchpoint for each customer journey.
     first_click_query = """
-    WITH first_clicks AS (
+    WITH ranked_touches AS (
         SELECT
             user_id,
             channel,
@@ -41,15 +57,16 @@ def run_attribution_queries(db_name='marketing.db'):
         channel,
         COUNT(*) as conversions,
         SUM(revenue) as attributed_revenue
-    FROM first_clicks
+    FROM ranked_touches
     WHERE rank = 1
     GROUP BY channel
     ORDER BY attributed_revenue DESC
     """
 
-    # 3. Last-Click Attribution
+    # 3. Last-Click Attribution Query
+    # Uses ROW_NUMBER() with DESC order to find the final touchpoint before conversion.
     last_click_query = """
-    WITH last_clicks AS (
+    WITH ranked_touches AS (
         SELECT
             user_id,
             channel,
@@ -61,45 +78,43 @@ def run_attribution_queries(db_name='marketing.db'):
         channel,
         COUNT(*) as conversions,
         SUM(revenue) as attributed_revenue
-    FROM last_clicks
+    FROM ranked_touches
     WHERE rank = 1
     GROUP BY channel
     ORDER BY attributed_revenue DESC
     """
 
-    # 4. Linear Attribution
+    # 4. Linear Attribution Query
+    # Divides the total conversion revenue by the count of touchpoints in that user's journey.
     linear_query = """
-    WITH journey_counts AS (
-        SELECT user_id, COUNT(*) as touchpoints, MAX(revenue) as total_revenue
+    WITH journey_stats AS (
+        SELECT user_id, COUNT(*) as total_touchpoints, MAX(revenue) as total_revenue
         FROM converted_journeys
         GROUP BY user_id
     )
     SELECT
         cj.channel,
-        SUM(1.0 / jc.touchpoints) as conversions,
-        SUM(jc.total_revenue / jc.touchpoints) as attributed_revenue
+        SUM(1.0 / js.total_touchpoints) as conversions,
+        SUM(js.total_revenue / js.total_touchpoints) as attributed_revenue
     FROM converted_journeys cj
-    JOIN journey_counts jc ON cj.user_id = jc.user_id
+    JOIN journey_stats js ON cj.user_id = js.user_id
     GROUP BY cj.channel
     ORDER BY attributed_revenue DESC
     """
 
-    print("--- First-Click Attribution ---")
+    # Run and export First-Click
     df_first = pd.read_sql_query(first_click_query, conn)
-    print(df_first)
-
-    print("\n--- Last-Click Attribution ---")
-    df_last = pd.read_sql_query(last_click_query, conn)
-    print(df_last)
-
-    print("\n--- Linear Attribution ---")
-    df_linear = pd.read_sql_query(linear_query, conn)
-    print(df_linear)
-
-    # Save results to CSV for visualization step
     df_first.to_csv('attribution_first_click.csv', index=False)
+
+    # Run and export Last-Click
+    df_last = pd.read_sql_query(last_click_query, conn)
     df_last.to_csv('attribution_last_click.csv', index=False)
+
+    # Run and export Linear
+    df_linear = pd.read_sql_query(linear_query, conn)
     df_linear.to_csv('attribution_linear.csv', index=False)
+
+    print("Calculated First-Click, Last-Click, and Linear attribution results.")
 
     conn.close()
 
